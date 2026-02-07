@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 趣味問答</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .team-mclaren { background: linear-gradient(135deg, #FF8000, #FFB266); }
+        .team-redbull { background: linear-gradient(135deg, #1E41FF, #CC1E4A); }
+        .team-mercedes { background: linear-gradient(135deg, #00D2BE, #000000); }
+        .team-aston { background: linear-gradient(135deg, #006F62, #00352F); }
+        .team-ferrari { background: linear-gradient(135deg, #DC0000, #FF6B6B); }
+
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF8000, #DC0000);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .question {
+            font-size: 22px;
+            color: #222;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .options {
+            list-style: none;
+        }
+
+        .option {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .option:hover {
+            background: #e8e8e8;
+            border-color: #ccc;
+            transform: translateX(5px);
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .answer-section {
+            display: none;
+            margin-top: 25px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            border-left: 5px solid #28a745;
+        }
+
+        .answer-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .answer-label {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .answer-text {
+            font-size: 18px;
+            color: #155724;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .explanation {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-answer {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-answer:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #FF8000, #DC0000);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(220, 0, 0, 0.4);
+        }
+
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .finish-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .finish-screen h1 {
+            font-size: 36px;
+            color: #222;
+            margin-bottom: 20px;
+        }
+
+        .finish-screen p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .checkered-flag {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #FF8000, #DC0000);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(220, 0, 0, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 25px;
+            }
+            .question {
+                font-size: 18px;
+            }
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card" id="quiz-card">
+            <!-- Content will be injected by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                team: "McLaren",
+                teamClass: "team-mclaren",
+                teamName: "麥拉倫車隊 McLaren",
+                teamDesc: "充滿年輕活力與破壞力的隊伍",
+                question: "當 Lando Norris 站上頒獎台慶祝時，紅牛車隊的 Max Verstappen 最需要擔心什麼？",
+                options: [
+                    "(A) 香檳噴到眼睛",
+                    "(B) 他的冠軍獎盃被打破",
+                    "(C) 車子被偷走",
+                    "(D) Lando 搶走他的麥克風"
+                ],
+                answer: 1,
+                answerText: "(B) 他的冠軍獎盃被打破",
+                explanation: "Lando 著名的慶祝動作「敲擊香檳瓶」曾兩次意外震倒並打破 Max 的昂貴陶瓷獎盃（匈牙利站最為經典）。"
+            },
+            {
+                team: "McLaren",
+                teamClass: "team-mclaren",
+                teamName: "麥拉倫車隊 McLaren",
+                teamDesc: "充滿年輕活力與破壞力的隊伍",
+                question: "新人 Oscar Piastri 被稱為「澳洲冷麵笑匠」，當他在卡達大獎賽贏得生涯第一個衝刺賽冠軍時，他的反應冷淡到讓大家懷疑什麼？",
+                options: [
+                    "(A) 他是不是這輩子還沒睡醒",
+                    "(B) 他其實是個 AI 機器人，忘記安裝「興奮情緒模組」",
+                    "(C) 他是不是討厭香檳",
+                    "(D) 他是不是想回家打電動"
+                ],
+                answer: 1,
+                answerText: "(B) 他其實是個 AI 機器人，忘記安裝「興奮情緒模組」",
+                explanation: "即便贏了比賽，Piastri 的語氣平淡到像是在說「喔，我去倒個垃圾」，被粉絲戲稱忘記安裝情緒模組。"
+            },
+            {
+                team: "McLaren",
+                teamClass: "team-mclaren",
+                teamName: "麥拉倫車隊 McLaren",
+                teamDesc: "充滿年輕活力與破壞力的隊伍",
+                question: "車隊老闆 Zak Brown 為了慶祝 2021 年義大利站的勝利，做了一件「不像 CEO 會做的事」，讓大家覺得他根本是個狂野的大叔？",
+                options: [
+                    "(A) 在手臂上刺青，刺了一條賽道形狀",
+                    "(B) 在屁股上刺了車手的名字",
+                    "(C) 穿著芭蕾舞裙參加記者會",
+                    "(D) 把公司賣給對手"
+                ],
+                answer: 0,
+                answerText: "(A) 在手臂上刺青，刺了一條賽道形狀",
+                explanation: "這是真的。為了慶祝 2021 年義大利站 McLaren 奪得冠亞軍，Zak Brown 真的跑去刺青（在左手臂刺了蒙扎賽道的形狀），對一位大老闆來說這超級瘋狂！"
+            },
+            {
+                team: "Red Bull",
+                teamClass: "team-redbull",
+                teamName: "紅牛車隊 Red Bull",
+                teamDesc: "火星車與它的產地",
+                question: "關於世界冠軍 Max Verstappen，網路上流傳著一個關於他「真實身分」的迷因，那是甚麼？",
+                options: [
+                    "(A) 他其實是外星人",
+                    "(B) 他就是那台車 (Max IS the car)",
+                    "(C) 他是職業電競選手兼職開 F1",
+                    "(D) 他是荷蘭國王"
+                ],
+                answer: 1,
+                answerText: "(B) 他就是那台車 (Max IS the car)",
+                explanation: "因為 Max 跟紅牛賽車的人車合一程度太高，加上隊友通常無法駕馭同台車，粉絲戲稱他本人就是賽車零件的一部分。"
+            },
+            {
+                team: "Red Bull",
+                teamClass: "team-redbull",
+                teamName: "紅牛車隊 Red Bull",
+                teamDesc: "火星車與它的產地",
+                question: "當 Max 在比賽中領先對手 20 秒以上感到無聊時，他可能會做什麼？",
+                options: [
+                    "(A) 看賽道旁的大螢幕關注隊友的名次",
+                    "(B) 停下來喝杯咖啡",
+                    "(C) 打電話給媽媽",
+                    "(D) 倒車開"
+                ],
+                answer: 0,
+                answerText: "(A) 看賽道旁的大螢幕關注隊友的名次",
+                explanation: "這是真實發生過的！他因為太閒，還有空看場邊大螢幕關心戰況。"
+            },
+            {
+                team: "Red Bull",
+                teamClass: "team-redbull",
+                teamName: "紅牛車隊 Red Bull",
+                teamDesc: "火星車與它的產地",
+                question: "隊友 Sergio Perez (Checo) 因為曾經死守 Hamilton 幫助 Max 奪冠，獲得了什麼響亮的稱號？",
+                options: [
+                    "(A) 墨西哥辣椒",
+                    "(B) 國防部長 (Minister of Defence)",
+                    "(C) 輪胎殺手",
+                    "(D) 派對之王"
+                ],
+                answer: 1,
+                answerText: "(B) 國防部長 (Minister of Defence)",
+                explanation: "他在 2021 阿布達比站如銅牆鐵壁般的防守，讓他獲得了「國防部長」這個至高無上的榮譽頭銜。"
+            },
+            {
+                team: "Mercedes",
+                teamClass: "team-mercedes",
+                teamName: "梅賽德斯車隊 Mercedes",
+                teamDesc: "曾經的霸主與現在的迷因製造機",
+                question: "車隊領隊 Toto Wolff 在生氣時，最無辜的受害者通常是？",
+                options: [
+                    "(A) 路邊的小狗",
+                    "(B) 他的耳機 (Headphones)",
+                    "(C) 賽車的方向盤",
+                    "(D) 午餐的三明治"
+                ],
+                answer: 1,
+                answerText: "(B) 他的耳機 (Headphones)",
+                explanation: "Toto 激動時怒摔耳機的畫面是 F1 最經典的迷因之一，Bose 耳機瑟瑟發抖。"
+            },
+            {
+                team: "Mercedes",
+                teamClass: "team-mercedes",
+                teamName: "梅賽德斯車隊 Mercedes",
+                teamDesc: "曾經的霸主與現在的迷因製造機",
+                question: "車手 George Russell 因為其正經八百的說話方式和姿勢，被粉絲戲稱為？",
+                options: [
+                    "(A) 搖滾巨星",
+                    "(B) PPT 簡報大師 / 機器人",
+                    "(C) 脫口秀演員",
+                    "(D) 街頭賽車手"
+                ],
+                answer: 1,
+                answerText: "(B) PPT 簡報大師 / 機器人",
+                explanation: "他為了爭取合約真的做過 PPT 簡報，且每次開場動作都像設定好的 NPC，被稱為 George 'PowerPoint' Russell。"
+            },
+            {
+                team: "Mercedes",
+                teamClass: "team-mercedes",
+                teamName: "梅賽德斯車隊 Mercedes",
+                teamDesc: "曾經的霸主與現在的迷因製造機",
+                question: "當 Lewis Hamilton 在無線電大喊「Bono, my tires are gone! (輪胎不行了)」時，通常接下來會發生什麼事？",
+                options: [
+                    "(A) 車子立刻拋錨",
+                    "(B) 他刷出全場最快圈速 (Purple Sector)",
+                    "(C) 他馬上進站換胎",
+                    "(D) 他停車吃冰淇淋"
+                ],
+                answer: 1,
+                answerText: "(B) 他刷出全場最快圈速 (Purple Sector)",
+                explanation: "這就是 F1 著名的「漢米爾頓輪胎詐騙術」，喊完不行了之後往往跑得更快。"
+            },
+            {
+                team: "Aston Martin",
+                teamClass: "team-aston",
+                teamName: "阿斯頓馬丁車隊 Aston Martin",
+                teamDesc: "老謀深算的狐狸與靠爸一族",
+                question: "Fernando Alonso 雖然是現役最資深的車手（40+歲），但為什麼被稱為「最強菜鳥 (Rookie)」？",
+                options: [
+                    "(A) 因為他剛考到駕照",
+                    "(B) 因為他曾參加過「年輕車手測試」",
+                    "(C) 因為他長得像 18 歲",
+                    "(D) 因為他是實習生"
+                ],
+                answer: 1,
+                answerText: "(B) 因為他曾參加過「年輕車手測試」",
+                explanation: "2020 年回歸時，他「厚臉皮」地參加了原本給年輕人開的測試賽，從此被戲稱為「永遠的年輕新秀」。"
+            },
+            {
+                team: "Aston Martin",
+                teamClass: "team-aston",
+                teamName: "阿斯頓馬丁車隊 Aston Martin",
+                teamDesc: "老謀深算的狐狸與靠爸一族",
+                question: "Lance Stroll 被公認擁有 F1 圍場內「最強防禦力」的合約，不管撞幾次車都不會被開除，原因是？",
+                options: [
+                    "(A) 他握有其他領隊的裸照",
+                    "(B) 他其實是隱藏的世界冠軍",
+                    "(C) 因為這支車隊就是他爸爸買給他的生日禮物",
+                    "(D) 他煮的楓糖漿太好吃了"
+                ],
+                answer: 2,
+                answerText: "(C) 因為這支車隊就是他爸爸買給他的生日禮物",
+                explanation: "這就是傳說中的「鈔能力」。他的父親 Lawrence Stroll 是身價數十億富豪並買下了整個車隊。別人的席位是搶來的，他的席位是爸爸刷卡買的。"
+            },
+            {
+                team: "Aston Martin",
+                teamClass: "team-aston",
+                teamName: "阿斯頓馬丁車隊 Aston Martin",
+                teamDesc: "老謀深算的狐狸與靠爸一族",
+                question: "Fernando Alonso 是 F1 的「迷因之王」。某次在巴西站他的賽車壞掉退賽後，他並沒有生氣回車庫，而是留下了一張什麼樣的「傳世神照」？",
+                options: [
+                    "(A) 搶走攝影師的攝影機開始幫別人拍照",
+                    "(B) 搬了一張海灘椅坐在賽道邊曬太陽做日光浴",
+                    "(C) 坐在草地上開始除草",
+                    "(D) 跑去觀眾席跟阿伯喝啤酒"
+                ],
+                answer: 1,
+                answerText: "(B) 搬了一張海灘椅坐在賽道邊曬太陽做日光浴",
+                explanation: "這張「阿龍索曬太陽 (Sunbathing Alonso)」的照片紅遍全球。這充分展現了他「老子不在乎」的退休生活態度，後來甚至這張椅子還變成了車隊的吉祥物。"
+            },
+            {
+                team: "Ferrari",
+                teamClass: "team-ferrari",
+                teamName: "法拉利車隊 Ferrari",
+                teamDesc: "義大利熱情與策略憂鬱",
+                question: "當車手詢問策略組：「接下來該怎麼辦？」時，最讓人崩潰的標準回答是？",
+                options: [
+                    "(A) Push hard! (用力跑)",
+                    "(B) We are checking (我們正在確認)",
+                    "(C) Go home (回家吧)",
+                    "(D) I don't know (我不知道)"
+                ],
+                answer: 1,
+                answerText: "(B) We are checking (我們正在確認)",
+                explanation: "\"We are checking\" 是法拉利工程師的經典名言，通常意味著他們根本還沒想到答案，讓車手無助等待。"
+            },
+            {
+                team: "Ferrari",
+                teamClass: "team-ferrari",
+                teamName: "法拉利車隊 Ferrari",
+                teamDesc: "義大利熱情與策略憂鬱",
+                question: "Charles Leclerc 因為開法拉利經歷了太多心碎與折磨（爆缸、撞車、策略失誤），導致他心理陰影面積過大，最近發展出了什麼「副業」來發洩情緒？",
+                options: [
+                    "(A) 參加格鬥比賽揍人",
+                    "(B) 發行聽起來超級憂鬱的鋼琴演奏專輯",
+                    "(C) 去修道院當修道士",
+                    "(D) 轉行當馬戲團小丑"
+                ],
+                answer: 1,
+                answerText: "(B) 發行聽起來超級憂鬱的鋼琴演奏專輯",
+                explanation: "Leclerc 真的發行了鋼琴曲（例如單曲〈AUS23〉），而且聽起來非常悲傷、抑鬱，完美呈現了身為法拉利車手的內心世界。"
+            },
+            {
+                team: "Ferrari",
+                teamClass: "team-ferrari",
+                teamName: "法拉利車隊 Ferrari",
+                teamDesc: "義大利熱情與策略憂鬱",
+                question: "法拉利的策略代號通常多到讓人懷疑人生，請問下列哪個是他們曾使用過的策略代號？",
+                options: [
+                    "(A) Plan A",
+                    "(B) Plan F / Plan E / Plan C",
+                    "(C) Plan Win",
+                    "(D) Plan Pizza"
+                ],
+                answer: 1,
+                answerText: "(B) Plan F / Plan E / Plan C",
+                explanation: "法拉利的策略代號曾經用到英文字母表的中段，甚至還問車手「你覺得 Plan E 怎麼樣？」，顯示策略極度混亂。"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answerRevealed = false;
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+            document.getElementById('quiz-card').innerHTML = `
+                <span class="team-badge ${q.teamClass}">${q.teamName}</span>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px; font-style: italic;">${q.teamDesc}</p>
+
+                <div class="progress">
+                    <span>第 ${currentQuestion + 1} 題</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <span>共 ${questions.length} 題</span>
+                </div>
+
+                <div class="question">${q.question}</div>
+
+                <ul class="options">
+                    ${q.options.map((opt, i) => `
+                        <li class="option ${answerRevealed && i === q.answer ? 'correct' : ''}" data-index="${i}">
+                            ${opt}
+                        </li>
+                    `).join('')}
+                </ul>
+
+                <div class="answer-section ${answerRevealed ? 'show' : ''}" id="answer-section">
+                    <div class="answer-label">正確答案</div>
+                    <div class="answer-text">${q.answerText}</div>
+                    <div class="explanation">${q.explanation}</div>
+                </div>
+
+                <div class="buttons">
+                    ${currentQuestion > 0 ? '<button class="btn btn-prev" onclick="prevQuestion()">上一題</button>' : ''}
+                    <button class="btn btn-answer" onclick="showAnswer()" ${answerRevealed ? 'disabled' : ''}>
+                        ${answerRevealed ? '已顯示答案' : '看答案'}
+                    </button>
+                    <button class="btn btn-next" onclick="nextQuestion()">
+                        ${currentQuestion === questions.length - 1 ? '完成測驗' : '下一題'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function showAnswer() {
+            answerRevealed = true;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                answerRevealed = false;
+                renderQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                showFinishScreen();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                answerRevealed = false;
+                renderQuestion();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function showFinishScreen() {
+            document.getElementById('quiz-card').innerHTML = `
+                <div class="finish-screen">
+                    <div class="checkered-flag">🏁</div>
+                    <h1>恭喜完賽！</h1>
+                    <p>你已經完成了所有 15 道 F1 趣味問答題目！<br>現在你對 F1 的八卦和迷因更加了解了！</p>
+                    <button class="restart-btn" onclick="restartQuiz()">重新開始</button>
+                </div>
+            `;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            answerRevealed = false;
+            renderQuestion();
+        }
+
+        // Initialize
+        renderQuestion();
+    </script>
+</body>
+</html>
